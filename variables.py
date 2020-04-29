@@ -10,7 +10,7 @@ WOOD = 4
 SAND = 5
 PLANK = 6
 GLASS = 7
-texturePath = "assets\\textures\\"
+texturePath = "assets/textures/"
 resources = [DIRT, GRASS, WATER, BRICK, WOOD, SAND, PLANK, GLASS]
 names = {
   DIRT:"dirt",

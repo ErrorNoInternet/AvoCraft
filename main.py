@@ -1,9 +1,14 @@
 import turtle
 import random
+import tkinter
+from tkinter import *
 from math import ceil
+from tkinter import ttk
 from variables import *
 from threading import Thread
-version = "0.1"
+from tkinter import messagebox
+from turtle import Screen, Turtle
+version = "0.2"
 def moveLeft():
   global playerX
   if(drawing == False and playerX > 0):
@@ -90,6 +95,19 @@ def drawResource(y, x):
     screen.update()
     drawing = False
 def drawWorld():
+  button = Turtle()
+  button.hideturtle()
+  button.shape('circle')
+  button.fillcolor('red')
+  button.penup()
+  button.goto(width-73, -10)
+  button.write("Save World", align='center', font=FONT)
+  button.sety(0)
+  button.setx(width - 12)
+  button.onclick(saveMap)
+  button.showturtle()
+  turtle = Turtle()
+  turtle.hideturtle()
   for row in range(MAPHEIGHT):
     for column in range(MAPWIDTH):
       drawResource(column, row)
@@ -98,12 +116,12 @@ def drawInventory():
   if drawing == False:
     drawing = True
     rendererT.color(BACKGROUNDCOLOUR)
-    rendererT.goto(0,0)
+    rendererT.goto(0,28)
     rendererT.begin_fill()
     for i in range(2):
       rendererT.forward(inventory_height - 60)
       rendererT.right(90)
-      rendererT.forward(width)
+      rendererT.forward(width-24)
       rendererT.right(90)
     rendererT.end_fill()
     rendererT.color('black')
@@ -133,7 +151,57 @@ def drawInventory():
         itemNum = 0
         yPostition -= TILESIZE + 80
     drawing = False
+def loadWorld():
+  file = open("worlds/world1.world", "r")
+  lineOld = file.readlines()
+  line = []
+  line2 = ""
+  for item in lineOld:
+    line2 = item
+  for item in line2:
+    line.append(item)
+  counter2 = 0
+  for row in range(MAPHEIGHT):
+    for column in range(MAPWIDTH):
+      counter2 = counter2 + 1
+      if counter2 >= 625:
+        break
+      else:
+        character = line[counter2]
+      if character == "0":
+          world[column][row] = DIRT
+      elif character == "1":
+        world[column][row] = GRASS
+      elif character == "2":
+        world[column][row] = WATER
+      elif character == "3":
+        world[column][row] = BRICK
+      elif character == "4":
+        world[column][row] = WOOD
+      elif character == "5":
+        world[column][row] = SAND
+      elif character == "6":
+        world[column][row] = PLANK
+      elif character == "7":
+        world[column][row] = GLASS
+  file.close()
+def saveMap(nothing, nothing2):
+  worldFile = open("worlds/world1.world", "r")
+  firstLine1 = worldFile.readlines()
+  line4 = ""
+  for item1 in firstLine1:
+    line4 = item1
+  firstChar = line4[0]
+  worldFile.close()
+  worldFile = open("worlds/world1.world", "w+")
+  worldFile.write(str(firstChar))
+  for row in range(MAPHEIGHT):
+    for column in range(MAPWIDTH):
+      worldFile.write(str(world[column][row]))
+  worldFile.close()
+  messagebox.showinfo("World saved", "Your world has been successfully saved")
 def generateRandomWorld():
+  worldFile = open("worlds/world1.world", "w+")
   for row in range(MAPHEIGHT):
     for column in range(MAPWIDTH):
       randomNumber = random.randint(0,12)
@@ -148,15 +216,42 @@ def generateRandomWorld():
       else:
         tile = DIRT
       world[column][row] = tile
+      worldFile.write(str(tile))
+  worldFile.close()
+def generateWorld():
+  menu.destroy()
+  global option
+  option = "newWorld"
+def openWorld():
+  menu.destroy()
+  global option
+  option = "openWorld"
 TILESIZE = 20
 INVWIDTH = 8
+FONT = ('Arial', 12, 'bold')
 drawing = False
+option = ""
+menu = tkinter.Tk()
+menu.title("AvoCraft Menu")
+name = Label(menu, text="AvoCraft", font=("Calibri", 16, "bold"))
+name.pack(ipadx=20)
+newWorld = ttk.Button(menu, text="Create new world", command=generateWorld)
+newWorld.pack(ipadx=25)
+loadWorldBtn = ttk.Button(menu, text="Open saved world", command=openWorld)
+loadWorldBtn.pack(ipadx=25)
+try:
+  checkFile = open("worlds/world1.world", "r")
+  checkFile.close()
+except:
+  loadWorldBtn['state'] = tkinter.DISABLED
+menu.mainloop()
 screen = turtle.Screen()
+screen.onscreenclick(saveMap, 1, add=False)
 screen.title("AvoCraft " + version)
 width = (TILESIZE * MAPWIDTH-370) + max(200,INVWIDTH * 50)
 num_rows = int(ceil((len(resources) / INVWIDTH)))
 inventory_height =  num_rows * 120 + 40
-height = (TILESIZE * MAPHEIGHT) + inventory_height
+height = (TILESIZE * MAPHEIGHT) + inventory_height + 20
 screen.setup(width, height)
 screen.setworldcoordinates(0,0,width,height)
 screen.bgcolor(BACKGROUNDCOLOUR)
@@ -177,7 +272,9 @@ screen.onkey(moveRight, 'd')
 screen.onkey(pickUp, 'space')
 bindPlacingKeys()
 bindCraftingKeys()
-generateRandomWorld()
+if option == "newWorld":
+  generateRandomWorld()
+elif option == "openWorld":
+  loadWorld()
 drawInventory()
 drawWorld()
-screen.mainloop()
